@@ -1,0 +1,77 @@
+name: Extrovert vs. Introvert Behavior Data Preprocessing
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths: 
+      - 'personality_dataset.csv'
+      - 'preprocessing/automate_Ica-Nur-Halimah.py'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * 1'
+
+jobs:
+  preprocessing:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12.7'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r preprocessing/requirements.txt
+
+    - name: Check if input data exists
+      run: |
+        if [ ! -f "personality_dataset.csv" ]; then
+          echo "Error: personality_dataset.csv not found!"
+          exit 1
+        fi
+
+    - name: Run preprocessing pipeline
+      run: |
+        cd preprocessing
+        python automate_Ica-Nur-Halimah.py
+
+    - name: Verify output files
+      run: |
+        if [ ! -f "preprocessing/personality_dataset_clean.csv" ]; then
+          echo "Error: Processed data file not created!"
+          exit 1
+        fi
+        if [ ! -f "preprocessing/scaler.pkl" ]; then
+          echo "Error: Scaler model not created!"
+          exit 1
+        if [ ! -f "preprocessing/le.pkl" ]; then
+          echo "Error: Label Encooder model not created!"
+          exit 1
+        fi
+        echo "All output files created successfully!"
+
+    - name: Upload processed dataset
+      uses: actions/upload-artifact@v4
+      with:
+        name: processed-dataset-${{ github.run_number }}
+        path: |
+          preprocessing/personality_dataset_clean.csv
+          preprocessing/scaler.pkl
+          preprocessing/le.pkl
+        retention-days: 30
+
+    - name: Commit processed files (if on main branch)
+      if: github.ref == 'refs/heads/main'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add preprocessing/personality_dataset_clean.csv preprocessing/scaler.pkl preprocessing/le.pkl
+        git diff --staged --quiet || git commit -m "Update processed dataset [automated]"
+        git push
