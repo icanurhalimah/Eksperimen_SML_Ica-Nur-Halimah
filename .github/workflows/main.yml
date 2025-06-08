@@ -51,6 +51,7 @@ jobs:
         if [ ! -f "preprocessing/scaler.pkl" ]; then
           echo "Error: Scaler model not created!"
           exit 1
+        fi
         if [ ! -f "preprocessing/le.pkl" ]; then
           echo "Error: Label Encooder model not created!"
           exit 1
