@@ -36,9 +36,9 @@ def preprocess_dataset(input_path="../personality_dataset.csv"):
     data_preprocessed['Personality'] = y_processed
 
     # Simpan ke file CSV
-    output_file = 'preprocessing/personality_dataset_clean.csv'
-    scaler_file = 'preprocessing/scaler.pkl'
-    le_file = 'preprocessing/le.pkl'
+    output_file = 'personality_dataset_clean.csv'
+    scaler_file = 'scaler.pkl'
+    le_file = 'le.pkl'
     data_preprocessed.to_csv(output_file, index=False)
     print(f"Data yang sudah diproses telah disimpan sebagai '{output_file}'")
     joblib.dump(scaler, scaler_file)
